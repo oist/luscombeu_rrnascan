@@ -28,14 +28,14 @@
             "read_2": {
                 "type": "string",
                 "format": "file-path",
-                "exists": false,
-                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q(\\.gz)?$",
-                "errorMessage": "Read 2 file cannot contain spaces and must have extension '.fq', '.fastq', '.fq.gz' or '.fastq.gz'"
+                "exists": true,
+                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.(f(ast)?q(\\.gz)?|fa(sta)?(\\.gz)?)$",
+                "errorMessage": "Read 2 file must be provided, cannot contain spaces and must have extension '.fq', '.fastq', '.fq.gz', '.fastq.gz', '.fa', '.fasta', '.fa.gz' or '.fasta.gz'"
             },
             "seed": {
                 "type": "string",
                 "format": "file-path",
-                "exists": false,
+                "exists": true,
                 "errorMessage": "Seed file must exist if provided"
             }
         },

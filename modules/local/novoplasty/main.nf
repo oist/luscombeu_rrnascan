@@ -8,7 +8,7 @@ process NOVOPLASTY {
     tuple val(meta), path(reads1), path(reads2), path(seed)
 
     output:
-    tuple val(meta), path("${meta.id}_assembly.fasta"), emit: assembly
+    tuple val(meta), path("${meta.id}_assembly*.fasta"), emit: assembly
     tuple val(meta), path("*.log"), emit: log
     path "versions.yml", emit: versions
 
@@ -19,7 +19,7 @@ process NOVOPLASTY {
     def forward_reads = reads1 ? reads1.toString() : ''
     def reverse_reads = reads2 ? reads2.toString() : ''
     def seed_input = seed.toString()
-    def genome_range = params.genome_range ?: '6000-20000'
+    def genome_range = params.genome_range ?: '6000-12000'
     def kmer = params.kmer ?: 33
     def max_memory = (task.memory.toGiga() as Integer) - 1
     
