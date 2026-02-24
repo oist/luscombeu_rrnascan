@@ -8,7 +8,7 @@ process NOVOPLASTY {
     tuple val(meta), path(reads1), path(reads2), path(seed)
 
     output:
-    tuple val(meta), path("${meta.id}_assembly*.fasta"), emit: assembly
+    tuple val(meta), path("${meta.id}_assembly.fasta"), emit: assembly
     tuple val(meta), path("*.log"), emit: log
     path "versions.yml", emit: versions
 
@@ -69,19 +69,26 @@ CONFIGEOF
     NOVOPlasty4.3.5.pl -c novoplasty_${meta.id}.config
 
     # Rename output assembly
-    if [ -f "novoplasty_output/Circularized_assembly/${meta.id}_Circularized_*.fasta" ]; then
-        cp "novoplasty_output/Circularized_assembly/${meta.id}_Circularized_"*.fasta "${meta.id}_assembly.fasta"
-    elif [ -f "novoplasty_output/Assembled_sequences/${meta.id}_*.fasta" ]; then
-        cp "novoplasty_output/Assembled_sequences/${meta.id}_"*.fasta "${meta.id}_assembly.fasta"
+    if [ -f "novoplasty_output/Circularized_assembly_"*"_${meta.id}.fasta" ]; then
+        cp "novoplasty_output/Circularized_assembly_"*"_${meta.id}.fasta" "${meta.id}_assembly.fasta"
+    elif [ -f "novoplasty_output/Assembled_sequences/"*"_${meta.id}.fasta" ]; then
+        cp "novoplasty_output/Assembled_sequences/"*"_${meta.id}.fasta" "${meta.id}_assembly.fasta"
     else
         # Create empty file if assembly failed
         touch "${meta.id}_assembly.fasta"
     fi
 
+    # Copy log file
+    if [ -f "novoplasty_output/log_${meta.id}.txt" ]; then
+        cp "novoplasty_output/log_${meta.id}.txt" "${meta.id}.log"
+    else
+        touch "${meta.id}.log"
+    fi
+
     cat > versions.yml << EOF
     "${task.process}":
-        novoplasty: \$(NOVOPlasty4.3.5.pl -v 2>&1 | grep -oP '(?<=NOVOPlasty)[0-9.]+' || echo "4.3.5")
-    EOF
+        novoplasty: \$(NOVOPlasty4.3.5.pl -v 2>&1 | sed 's/.*NOVOPlasty//;s/ .*//' | tr -d '[:space:]' || echo "4.3.5")
+EOF
     """
 
     stub:
@@ -92,6 +99,6 @@ CONFIGEOF
     cat > versions.yml << EOF
     "${task.process}":
         novoplasty: 4.3.5
-    EOF
+EOF
     """
 }

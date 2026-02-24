@@ -36,7 +36,7 @@ params.fasta = getGenomeAttribute('fasta')
 */
 
 params.genome_range = '6000-12000'
-params.kmer = 33
+params.kmer = '33'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
