@@ -46,10 +46,25 @@ workflow OIST_LUSCOMBEU_RRNASCAN {
     main:
 
     //
+    // Parse samplesheet and create channels
+    //
+    ch_reads = samplesheet
+        .splitCsv(header: true, sep: ',', strip: true)
+        .map { row ->
+            def meta = [id: row.sample_ID]
+            def read_type = row.read_type
+            def read1 = file(row.read_1, checkIfExists: true)
+            def read2 = (row.read_2 && row.read_2.toString().trim()) ? file(row.read_2, checkIfExists: true) : null
+            def seed = (row.seed && row.seed.toString().trim()) ? file(row.seed, checkIfExists: true) : null
+            
+            [ meta, read_type, read1, read2, seed ]
+        }
+
+    //
     // WORKFLOW: Run pipeline
     //
     LUSCOMBEU_RRNASCAN (
-        samplesheet
+        ch_reads
     )
     emit:
     multiqc_report = LUSCOMBEU_RRNASCAN.out.multiqc_report // channel: /path/to/multiqc_report.html

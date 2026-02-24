@@ -253,5 +253,19 @@
         {
             "$ref": "#/$defs/generic_options"
         }
-    ]
+    ],
+    "properties": {
+        "max_memory": {
+            "type": "string",
+            "default": "500 GB"
+        },
+        "max_cpus": {
+            "type": "integer",
+            "default": 256
+        },
+        "max_time": {
+            "type": "string",
+            "default": "3d 18h"
+        }
+    }
 }
