@@ -1,6 +1,6 @@
 process CMSEARCH_RRNA {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_high'
 
     container 'quay.io/biocontainers/infernal:1.1.5--pl5321h7b50bb2_4'
 
