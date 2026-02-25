@@ -112,9 +112,14 @@ process EXTRACT_RRNA {
             for (j = 1; j <= n_lsu; j++) {
                 if (ssu_contig[i] != lsu_contig[j]) continue
 
-                if      (lsu_start[j] > ssu_end[i]) dist = lsu_start[j] - ssu_end[i]
-                else if (ssu_start[i] > lsu_end[j]) dist = ssu_start[i] - lsu_end[j]
-                else                                dist = 0
+                # LSU must come AFTER SSU (biologically: SSU-ITS-LSU order)
+                if (ssu_strand[i] == "+") {
+                    if (lsu_start[j] <= ssu_end[i]) continue
+                    dist = lsu_start[j] - ssu_end[i]
+                } else {
+                    if (lsu_end[j] >= ssu_start[i]) continue
+                    dist = ssu_start[i] - lsu_end[j]
+                }
 
                 if (closest_dist < 0 || dist < closest_dist) {
                     closest_dist = dist
