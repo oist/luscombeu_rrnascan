@@ -73,6 +73,8 @@ CONFIGEOF
         cp "novoplasty_output/Circularized_assembly_"*"_${meta.id}.fasta" "${meta.id}_assembly.fasta"
     elif [ -f "novoplasty_output/Assembled_sequences/"*"_${meta.id}.fasta" ]; then
         cp "novoplasty_output/Assembled_sequences/"*"_${meta.id}.fasta" "${meta.id}_assembly.fasta"
+    elif [ -f "novoplasty_output/Contigs_1_${meta.id}.fasta" ]; then
+        cp "novoplasty_output/Contigs_1_${meta.id}.fasta" "${meta.id}_assembly.fasta"
     else
         # Create empty file if assembly failed
         touch "${meta.id}_assembly.fasta"
