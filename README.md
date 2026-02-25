@@ -14,78 +14,91 @@
 
 ## Introduction
 
-**oist/luscombeu_rrnascan** is a bioinformatics pipeline that ...
+**oist/luscombeu_rrnascan** is a comprehensive Nextflow pipeline for detecting, extracting, and analyzing ribosomal RNA (rRNA) and internal transcribed spacer (ITS) sequences from genomic assemblies or sequencing reads. The pipeline supports multiple input types: Illumina paired-end reads (assembled via NOVOPlasty), long-read sequencing data (ONT/PacBio), or pre-assembled genome sequences. It searches for SSU (18S), 5.8S, and LSU (28S) rRNA sequences using Infernal's covariance models and automatically extracts the ITS region spanning ITS1, ITS2 and 5.8S.
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
+## Pipeline Overview
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/guidelines/graphic_design/workflow_diagrams#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+1. **Assembly** (if reads provided):
+   - Illumina reads → [`NOVOPlasty`](https://github.com/eversinc33/NOVOPlasty) (de novo circular assembly)
+   - ONT/PacBio reads → [`NOVOloci`](https://github.com/eversinc33/NOVOloci) (long-read assembly NOT READY)
+   - Pre-assembled genomes → Direct input
+
+2. **rRNA Detection & Extraction**:
+   - rRNA discovery ([`Infernal`](http://infernal.janelia.org/) cmsearch with covariance models)
+   - Sequence extraction ([`EMBOSS`](http://emboss.sourceforge.net/) seqret)
+   - ITS region identification (between rRNA boundaries)
+
+3. **Quality Control**:
+   - Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+   - Results summary ([`MultiQC`](http://multiqc.info/))
 
 ## Usage
 
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
+### Prepare Input Samplesheet
 
-First, prepare a samplesheet with your input data that looks as follows:
-
-`samplesheet.csv`:
+Create a CSV file (`samplesheet.csv`) with your input data:
 
 ```csv
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+sample_ID,read_type,read_1,read_2,seed
+SAMPLE1,illumina,reads_R1.fastq.gz,reads_R2.fastq.gz,seed.fasta
+SAMPLE2,genome,assembly.fasta,,
+SAMPLE3,ONT,nanopore_reads.fastq.gz,,
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+**Columns:**
+- `sample_ID`: Unique sample identifier
+- `read_type`: One of `illumina`, `ONT`, `Pacbio`, or `genome`
+- `read_1`: Path to forward reads (FASTQ/FASTA) or assembly (FASTA)
+- `read_2`: Path to reverse reads (FASTQ, optional for Illumina)
+- `seed`: Optional seed sequence for NOVOPlasty (FASTA)
 
--->
-
-Now, you can run the pipeline using:
-
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+### Run Pipeline
 
 ```bash
 nextflow run oist/luscombeu_rrnascan \
-   -profile <docker/singularity/.../institute> \
+   -profile singularity \
    --input samplesheet.csv \
-   --outdir <OUTDIR>
+   --outdir results
+```
+
+### Key Parameters
+
+```bash
+# Assembly parameters
+--genome_range '6000-12000'    # Expected genome size range for NOVOPlasty
+--kmer 33                       # K-mer size for assembly (default: 33)
 ```
 
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/usage/getting_started/configuration#custom-configuration-files).
 
+## Output
+
+Results are saved in the `--outdir` directory with the following structure:
+
+```
+results/
+├── assembly/          # NOVOPlasty assemblies (if reads provided)
+├── cmsearch/          # rRNA search results (tab-separated)
+├── extract/      # Extracted rRNA and ITS sequences (FASTA)
+│   ├── *_SSU.fasta    # 18S rRNA sequences
+│   ├── *_ITS1.fasta   # ITS1 regions
+│   ├── *_5.8S.fasta   # 5.8S rRNA sequences
+│   ├── *_ITS2.fasta   # ITS2 regions
+│   ├── *_LSU.fasta    # 28S rRNA sequences
+│   └── *_rrna.tsv     # Detailed rRNA coordinates
+├── fastqc/            # FastQC reports
+├── multiqc/           # MultiQC summary
+└── pipeline_info/     # Pipeline execution details
+```
+
 ## Credits
 
 oist/luscombeu_rrnascan was originally written by Johannes Nicolaus Wibisana.
 
-We thank the following people for their extensive assistance in the development of this pipeline:
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
-
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
-
-## Citations
-
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use oist/luscombeu_rrnascan for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
-
-An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
-
-This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) community, reused here under the [MIT license](https://github.com/nf-core/tools/blob/main/LICENSE).
-
-> **The nf-core framework for community-curated bioinformatics pipelines.**
->
-> Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
->
-> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
